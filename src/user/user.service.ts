@@ -2,11 +2,11 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
 import {
-  createUserRequest,
-  createUserSchema,
   updateUserRequest,
   updateUserSchema,
+  userRequest,
   userResponse,
+  userSchema,
 } from './dto/user.dto';
 import { User } from '../../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -21,10 +21,10 @@ export class UserService {
     private validationService: ValidationService,
   ) {}
 
-  async create(request: createUserRequest): Promise<userResponse> {
+  async create(request: userRequest): Promise<userResponse> {
     this.logger.debug(`UserService.create(${JSON.stringify(request)})`);
-    const createRequest: createUserRequest = this.validationService.validate(
-      createUserSchema,
+    const createRequest: userRequest = this.validationService.validate(
+      userSchema,
       request,
     );
 
@@ -36,7 +36,7 @@ export class UserService {
     if (checkDuplicateEmail)
       throw new HttpException('Email already exist', 400);
 
-    const result: User = await this.prismaService.user.create({
+    return this.prismaService.user.create({
       data: {
         email: createRequest.email,
         password: await bcrypt.hash(
@@ -45,16 +45,12 @@ export class UserService {
         ),
       },
     });
-    return {
-      id: result.id,
-      email: result.email,
-    };
   }
 
-  async get(id: number): Promise<userResponse> {
-    this.logger.debug(`UserService.get(${JSON.stringify(id)})`);
-    const user: User | null = await this.prismaService.user.findFirst({
-      where: { id: id },
+  async getByEmail(email: string): Promise<userResponse> {
+    this.logger.debug(`UserService.get(${JSON.stringify(email)})`);
+    const user: User | null = await this.prismaService.user.findUnique({
+      where: { email: email },
     });
     if (!user) throw new HttpException('Email not found', 400);
     return user;
@@ -76,28 +72,9 @@ export class UserService {
         updateRequest.password,
         Number(process.env.SALT),
       );
-    const result: User = await this.prismaService.user.update({
+    return this.prismaService.user.update({
       where: { id: id },
       data: user,
-    });
-    return {
-      id: result.id,
-      email: result.email,
-    };
-  }
-
-  async remove(id: number): Promise<void> {
-    this.logger.debug(`UserService.delete(${JSON.stringify(id)})`);
-    const user: User | null = await this.prismaService.user.findFirst({
-      where: {
-        id: id,
-      },
-    });
-    if (!user) throw new HttpException('User not found', 400);
-    await this.prismaService.user.delete({
-      where: {
-        id: id,
-      },
     });
   }
 }
