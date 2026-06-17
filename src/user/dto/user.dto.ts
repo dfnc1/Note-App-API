@@ -1,5 +1,10 @@
 import { z, ZodType } from 'zod';
 
+export type authResponse = {
+  token_type: 'Bearer';
+  access_token: string;
+};
+
 export type userResponse = {
   id: number;
   email: string;
@@ -24,6 +29,6 @@ export type updateUserRequest = {
 };
 
 export const updateUserSchema: ZodType<updateUserRequest> = z.object({
-  email: z.string().min(1).max(100),
-  password: z.string().min(1).max(100),
+  email: z.string().min(1).max(100).optional(),
+  password: z.string().min(1).max(100).optional(),
 });
