@@ -2,6 +2,7 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
 import {
+  authResponse,
   updateUserRequest,
   updateUserSchema,
   userRequest,
@@ -10,27 +11,55 @@ import {
 } from './dto/user.dto';
 import { User } from '../../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
-import 'dotenv';
+import 'dotenv/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
   private logger: Logger = new Logger(UserService.name);
 
   constructor(
+    private jwtService: JwtService,
     private prismaService: PrismaService,
     private validationService: ValidationService,
   ) {}
 
-  async create(request: userRequest): Promise<userResponse> {
-    this.logger.debug(`UserService.create(${JSON.stringify(request)})`);
-    const createRequest: userRequest = this.validationService.validate(
+  async register(request: userRequest): Promise<authResponse> {
+    const registerRequest: userRequest = this.validationService.validate(
       userSchema,
       request,
     );
+    const user: userResponse = await this.create(registerRequest);
+    return this.generateToken(user);
+  }
 
+  async login(request: userRequest): Promise<authResponse> {
+    const loginRegister: userRequest = this.validationService.validate(
+      userSchema,
+      request,
+    );
+    const user: userResponse = await this.getByEmail(loginRegister.email);
+
+    const isMatch: boolean = await bcrypt.compare(
+      loginRegister.password,
+      user.password,
+    );
+    if (!isMatch) throw new HttpException('Invalid Email or Password', 400);
+
+    return this.generateToken(user);
+  }
+
+  async generateToken(user: userResponse): Promise<authResponse> {
+    return {
+      token_type: 'Bearer',
+      access_token: await this.jwtService.signAsync(user),
+    };
+  }
+
+  async create(request: userRequest): Promise<userResponse> {
     const checkDuplicateEmail: userResponse | null =
       await this.prismaService.user.findUnique({
-        where: { email: createRequest.email },
+        where: { email: request.email },
       });
 
     if (checkDuplicateEmail)
@@ -38,21 +67,17 @@ export class UserService {
 
     return this.prismaService.user.create({
       data: {
-        email: createRequest.email,
-        password: await bcrypt.hash(
-          createRequest.password,
-          Number(process.env.SALT),
-        ),
+        email: request.email,
+        password: await bcrypt.hash(request.password, Number(process.env.SALT)),
       },
     });
   }
 
   async getByEmail(email: string): Promise<userResponse> {
-    this.logger.debug(`UserService.get(${JSON.stringify(email)})`);
     const user: User | null = await this.prismaService.user.findUnique({
       where: { email: email },
     });
-    if (!user) throw new HttpException('Email not found', 400);
+    if (!user) throw new HttpException('Invalid Email or Password', 400);
     return user;
   }
 
@@ -65,6 +90,7 @@ export class UserService {
     const user: User | null = await this.prismaService.user.findFirst({
       where: { id: id },
     });
+
     if (!user) throw new HttpException('User not found', 400);
     if (updateRequest.email) user.email = updateRequest.email;
     if (updateRequest.password)
