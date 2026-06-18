@@ -25,6 +25,7 @@ export class UserService {
   ) {}
 
   async register(request: userRequest): Promise<authResponse> {
+    this.logger.log('Register...');
     const registerRequest: userRequest = this.validationService.validate(
       userSchema,
       request,
@@ -34,6 +35,7 @@ export class UserService {
   }
 
   async login(request: userRequest): Promise<authResponse> {
+    this.logger.log('Login...');
     const loginRegister: userRequest = this.validationService.validate(
       userSchema,
       request,
@@ -50,6 +52,7 @@ export class UserService {
   }
 
   async generateToken(user: userResponse): Promise<authResponse> {
+    this.logger.log('Generating token...');
     return {
       token_type: 'Bearer',
       access_token: await this.jwtService.signAsync(user),
@@ -57,6 +60,7 @@ export class UserService {
   }
 
   async create(request: userRequest): Promise<userResponse> {
+    this.logger.log('Creating new user...');
     const checkDuplicateEmail: userResponse | null =
       await this.prismaService.user.findUnique({
         where: { email: request.email },
@@ -74,6 +78,7 @@ export class UserService {
   }
 
   async getByEmail(email: string): Promise<userResponse> {
+    this.logger.log('Getting user...');
     const user: User | null = await this.prismaService.user.findUnique({
       where: { email: email },
     });
@@ -82,7 +87,7 @@ export class UserService {
   }
 
   async update(id: number, request: updateUserRequest): Promise<userResponse> {
-    this.logger.debug(`UserService.create(${JSON.stringify(request)})`);
+    this.logger.log('Update user...');
     const updateRequest: updateUserRequest = this.validationService.validate(
       updateUserSchema,
       request,
