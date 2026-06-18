@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { CommonModule } from '../common/common.module';
 import { JwtModule } from '@nestjs/jwt';
 import 'dotenv/config';
+import { UserController } from './user.controller';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import 'dotenv/config';
     }),
   ],
   providers: [UserService],
+  controllers: [UserController],
   exports: [UserService],
 })
 export class UserModule {}
