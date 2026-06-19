@@ -7,7 +7,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/register')
-  @HttpCode(204)
+  @HttpCode(200)
   async register(@Body() request: userRequest): Promise<authResponse> {
     return await this.userService.register(request);
   }
