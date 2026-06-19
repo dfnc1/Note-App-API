@@ -3,8 +3,6 @@ import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
 import {
   authResponse,
-  updateUserRequest,
-  updateUserSchema,
   userRequest,
   userResponse,
   userSchema,
@@ -59,7 +57,7 @@ export class UserService {
     };
   }
 
-  async create(request: userRequest): Promise<userResponse> {
+  async create(request: userRequest): Promise<User> {
     this.logger.log('Creating new user...');
     const checkDuplicateEmail: userResponse | null =
       await this.prismaService.user.findUnique({
@@ -84,28 +82,5 @@ export class UserService {
     });
     if (!user) throw new HttpException('Invalid Email or Password', 400);
     return user;
-  }
-
-  async update(id: number, request: updateUserRequest): Promise<userResponse> {
-    this.logger.log('Update user...');
-    const updateRequest: updateUserRequest = this.validationService.validate(
-      updateUserSchema,
-      request,
-    );
-    const user: User | null = await this.prismaService.user.findFirst({
-      where: { id: id },
-    });
-
-    if (!user) throw new HttpException('User not found', 400);
-    if (updateRequest.email) user.email = updateRequest.email;
-    if (updateRequest.password)
-      user.password = await bcrypt.hash(
-        updateRequest.password,
-        Number(process.env.SALT),
-      );
-    return this.prismaService.user.update({
-      where: { id: id },
-      data: user,
-    });
   }
 }
