@@ -32,7 +32,7 @@ export class ErrorFilter implements ExceptionFilter {
         errors: 'Jwt Error',
       });
     } else {
-      response.status(501).json({
+      response.status(500).json({
         errors: exception.message,
       });
     }
