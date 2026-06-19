@@ -1,0 +1,48 @@
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "saaas@gmail",
+  "password": "1234"
+}
+
+###
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "ss@gmail",
+  "password": "1234"
+}
+
+###
+@jwt_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiZW1haWwiOiJkaWFuQGdtYWlsIiwicGFzc3dvcmQiOiIkMmIkMTAkRnlKOUd3bGo3SnZjSUFUN1g2WFdnZUFad3lIQUxqdHVtZTZYUXNmeWszbnJOUVJqemV2bGUiLCJpYXQiOjE3ODE3ODM4OTYsImV4cCI6MTc4MTc4NDc5Nn0.jCVejRX-KnDoHFkVA0irjUKfxwcV5q_8_5WCUjtOMZg
+POST http://localhost:3000/note
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+
+{
+  "title": "bjawa Presentation",
+  "content": "create presentation for sunday"
+}
+
+###
+GET http://localhost:3000/note/1
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+
+###
+PATCH http://localhost:3000/note
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+
+{
+  "id": 12,
+  "title": "Arab Presentation",
+  "content": "create presentation for tomorrow"
+}
+
+###
+GET http://localhost:3000/note/notes
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
