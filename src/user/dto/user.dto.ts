@@ -22,13 +22,3 @@ export const userSchema: ZodType<userRequest> = z
     password: z.string().min(1).max(100),
   })
   .required();
-
-export type updateUserRequest = {
-  email?: string | null;
-  password?: string | null;
-};
-
-export const updateUserSchema: ZodType<updateUserRequest> = z.object({
-  email: z.string().min(1).max(100).optional(),
-  password: z.string().min(1).max(100).optional(),
-});
