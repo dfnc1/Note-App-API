@@ -212,7 +212,7 @@ describe('App(e2e)', () => {
         expect(response.body.content).toBe('test content update');
       });
     });
-    describe('GET /note/notes', () => {
+    describe('GET /note', () => {
       it('should can list note', async (): Promise<void> => {
         const response = await request(app.getHttpServer())
           .get('/note')
